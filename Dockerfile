@@ -2,8 +2,9 @@
 FROM node:20 AS build
 WORKDIR /app
 COPY package*.json ./
+RUN npm install
 COPY . .
-RUN npm install && npm run build
+RUN npm run build
 
 # Use Nginx to serve the static files
 FROM nginx:alpine

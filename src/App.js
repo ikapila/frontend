@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import StockManagement from './StockManagement';
+import Sales from './Sales';
+import Admin from './Admin';
+import CarPartsManagement from './CarPartsManagement';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
@@ -18,8 +23,14 @@ function App() {
   const [stockStatus, setStockStatus] = useState('available');
   const [availableFrom, setAvailableFrom] = useState('');
   const [soldDate, setSoldDate] = useState('');
+  const [parentId, setParentId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // User role state
+  const [userRole, setUserRole] = useState('');
+
+  const navigate = useNavigate();
 
   // Fetch car parts from backend
   const fetchParts = async () => {
@@ -39,9 +50,8 @@ function App() {
     if (token) fetchParts();
   }, [token]);
 
-  // Add a new car part
-  const handleAddPart = async (e) => {
-    e.preventDefault();
+  // Add a new car part (refactored for CarPartsManagement)
+  const handleAddPart = async (partData) => {
     setError('');
     try {
       const res = await fetch(`${API_URL}/parts`, {
@@ -50,20 +60,9 @@ function App() {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` })
         },
-        body: JSON.stringify({
-          name,
-          manufacturer,
-          stock_status: stockStatus,
-          available_from: availableFrom || null,
-          sold_date: soldDate || null
-        })
+        body: JSON.stringify(partData)
       });
       if (!res.ok) throw new Error('Failed to add part');
-      setName('');
-      setManufacturer('');
-      setStockStatus('available');
-      setAvailableFrom('');
-      setSoldDate('');
       fetchParts();
     } catch (err) {
       setError('Failed to add car part');
@@ -86,6 +85,8 @@ function App() {
       if (authMode === 'login') {
         setToken(data.token);
         localStorage.setItem('token', data.token);
+        setUserRole(data.role || '');
+        navigate('/stock-management');
       } else {
         setAuthMode('login');
       }
@@ -96,107 +97,124 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      // Decode JWT to get role if not set
+      if (!userRole) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          setUserRole(payload.role || '');
+        } catch {}
+      }
+      fetchParts();
+    } else {
+      setUserRole('');
+    }
+  }, [token]);
+
   const handleLogout = () => {
     setToken('');
     localStorage.removeItem('token');
     setParts([]);
+    navigate('/');
   };
 
   return (
     <div className="App">
-      <h1>Car Parts</h1>
-      <p>Welcome to the Car Parts Management App! Use this tool to view and add car parts to your inventory.</p>
-      {!token ? (
-        <div style={{ marginBottom: 20 }}>
-          <h2>{authMode === 'login' ? 'Login' : 'Register'}</h2>
-          <form onSubmit={handleAuth}>
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-            <button type="submit">{authMode === 'login' ? 'Login' : 'Register'}</button>
-          </form>
-          <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} style={{ marginTop: 10 }}>
-            {authMode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
-          </button>
-          {authError && <p style={{ color: 'red' }}>{authError}</p>}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div className="container-fluid d-flex flex-column flex-lg-row align-items-center justify-content-between">
+          <div className="d-flex align-items-center w-100 w-lg-auto justify-content-between">
+            <Link className="navbar-brand" to="/">Car Parts App</Link>
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span className="navbar-toggler-icon"></span>
+            </button>
+          </div>
+          <div className="collapse navbar-collapse w-100 w-lg-auto" id="navbarNav">
+            <ul className="navbar-nav mx-auto">
+              <li className="nav-item">
+                <Link className="nav-link" to="/stock-management"><b>Stock Management</b></Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/sales"><b>Sales</b></Link>
+              </li>
+              {userRole === 'admin' && (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin"><b>Admin</b></Link>
+                </li>
+              )}
+            </ul>
+          </div>
+          {token && (
+            <div className="d-flex align-items-center justify-content-center mt-2 mt-lg-0" style={{ minWidth: 100 }}>
+              <button
+                onClick={handleLogout}
+                className="btn btn-outline-light w-100"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
-      ) : (
-        <>
-          <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
-          <h2>Car Parts Management</h2>
-          <form onSubmit={handleAddPart} style={{ marginBottom: 20 }}>
-            <input
-              type="text"
-              placeholder="Part Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
+      </nav>
+      <Routes>
+        <Route path="/" element={
+          <div className="container" style={{ maxWidth: 400 }}>
+            <h1 className="text-center my-4">Car Parts</h1>
+            <p className="text-center">Welcome to the Car Parts Management App! Please log in or register to continue.</p>
+            {!token ? (
+              <div className="card p-4 shadow-sm mb-4">
+                <h2 className="mb-3 text-center">{authMode === 'login' ? 'Login' : 'Register'}</h2>
+                <form onSubmit={handleAuth}>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Username"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="password"
+                      className="form-control"
+                      placeholder="Password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary w-100">{authMode === 'login' ? 'Login' : 'Register'}</button>
+                </form>
+                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="btn btn-link w-100 mt-2">
+                  {authMode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
+                </button>
+                {authError && <div className="alert alert-danger mt-2">{authError}</div>}
+              </div>
+            ) : (
+              <button onClick={handleLogout} className="btn btn-secondary float-end">Logout</button>
+            )}
+          </div>
+        } />
+        <Route path="/stock-management" element={
+          token ? (
+            <CarPartsManagement
+              token={token}
+              parts={parts}
+              fetchParts={fetchParts}
+              loading={loading}
+              error={error}
+              handleAddPart={handleAddPart}
+              userRole={userRole}
             />
-            <input
-              type="text"
-              placeholder="Manufacturer"
-              value={manufacturer}
-              onChange={e => setManufacturer(e.target.value)}
-              required
-            />
-            <select value={stockStatus} onChange={e => setStockStatus(e.target.value)}>
-              <option value="available">Available</option>
-              <option value="sold">Sold</option>
-              <option value="reserved">Reserved</option>
-            </select>
-            <input
-              type="date"
-              placeholder="Available From"
-              value={availableFrom}
-              onChange={e => setAvailableFrom(e.target.value)}
-            />
-            <input
-              type="date"
-              placeholder="Sold Date"
-              value={soldDate}
-              onChange={e => setSoldDate(e.target.value)}
-            />
-            <button type="submit">Add Part</button>
-          </form>
-          {loading ? <p>Loading...</p> : null}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-          <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>ID</th>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>Name</th>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>Manufacturer</th>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>Stock Status</th>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>Available From</th>
-                <th style={{ border: '1px solid #ccc', padding: 8 }}>Sold Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {parts.map(part => (
-                <tr key={part.id}>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.id}</td>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.name}</td>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.manufacturer}</td>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.stock_status}</td>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.available_from || ''}</td>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{part.sold_date || ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
+          ) : (
+            <p style={{ color: 'red' }}>Please log in to access Stock Management.</p>
+          )
+        } />
+        <Route path="/sales" element={<Sales />} />
+        <Route path="/admin" element={<Admin token={token} userRole={userRole} />} />
+      </Routes>
     </div>
   );
 }
