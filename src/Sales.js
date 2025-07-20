@@ -12,6 +12,69 @@ function Sales() {
   const [showModal, setShowModal] = useState(false);
   const [sellId, setSellId] = useState(null);
   const [sellPrice, setSellPrice] = useState('');
+  const [showBillModal, setShowBillModal] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [billNumber, setBillNumber] = useState('');
+  const [bills, setBills] = useState([]);
+
+  const printBill = (bill) => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Bill - ${bill.bill_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .bill-details { margin-bottom: 20px; }
+            .items-table { width: 100%; border-collapse: collapse; }
+            .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            .items-table th { background-color: #f2f2f2; }
+            .total { margin-top: 20px; font-weight: bold; }
+            @media print { button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Car Parts Management</h1>
+            <h2>Bill Receipt</h2>
+          </div>
+          <div class="bill-details">
+            <p><strong>Bill Number:</strong> ${bill.bill_number}</p>
+            <p><strong>Customer Name:</strong> ${bill.customer_name}</p>
+            <p><strong>Date:</strong> ${new Date(bill.date).toLocaleDateString()}</p>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Item ID</th>
+                <th>Name</th>
+                <th>Manufacturer</th>
+                <th>Price (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bill.items.map(item => `
+                <tr>
+                  <td>${item.id}</td>
+                  <td>${item.name}</td>
+                  <td>${item.manufacturer || 'N/A'}</td>
+                  <td>₹${parseFloat(item.sold_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="total">
+            <p>Total Amount: ₹${bill.items.reduce((total, item) => total + parseFloat(item.sold_price || 0), 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+          <button onclick="window.print()">Print Bill</button>
+        </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -52,12 +115,77 @@ function Sales() {
         },
         body: JSON.stringify({ sold_price: sellPrice })
       });
-      if (!res.ok) throw new Error('Failed to sell part');
-      setSuccess('Part sold successfully!');
-      setResults(results.map(part => part.id === sellId ? { ...part, stock_status: 'sold', sold_date: new Date().toISOString().split('T')[0], sold_price: sellPrice } : part));
+      if (!res.ok) {
+        throw new Error('Failed to sell part');
+      }
+
+      const soldItem = results.find(part => part.id === sellId);
+      const updatedItem = { ...soldItem, stock_status: 'sold', sold_date: new Date().toISOString().split('T')[0], sold_price: sellPrice };
+      setResults(results.map(part => part.id === sellId ? updatedItem : part));
+
+      const newBill = {
+        customerName,
+        billNumber: billNumber || `${Date.now()}`,
+        items: [updatedItem],
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      const billRes = await fetch(`http://localhost:3000/bills`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify(newBill)
+      });
+      if (!billRes.ok) {
+        throw new Error('Failed to save bill');
+      }
+
+      const savedBill = await billRes.json();
+      setSuccess('Part sold and bill saved successfully!');
+      
+      // Auto-print the bill after successful sale
+      const billToPrint = {
+        bill_number: newBill.billNumber,
+        customer_name: newBill.customerName,
+        date: newBill.date,
+        items: newBill.items
+      };
+      printBill(billToPrint);
+      
       setShowModal(false);
     } catch (err) {
-      setError('Failed to sell part.');
+      setError('Failed to sell part or save bill.');
+    }
+  };
+
+  const handleRetrieveBills = async (searchTerm = '') => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:3000/bills`, {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
+      if (!res.ok) {
+        throw new Error('Failed to fetch bills');
+      }
+      const data = await res.json();
+      const filteredBills = searchTerm.trim() === ''
+        ? data
+        : data.filter(
+            bill =>
+              bill.bill_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              bill.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+      setBills(filteredBills);
+    } catch (err) {
+      console.error('Error retrieving bills:', err);
+      setError('Failed to retrieve bills.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -142,6 +270,50 @@ function Sales() {
             </table>
           </div>
         )}
+        <button className="btn btn-secondary mt-3 ms-2" onClick={() => handleRetrieveBills()}>Retrieve Bills</button>
+        <input
+          type="text"
+          className="form-control mt-3"
+          placeholder="Search bills by number or customer name"
+          onChange={e => handleRetrieveBills(e.target.value)}
+        />
+        {bills.length > 0 && (
+          <div className="table-responsive mt-4">
+            <table className="table table-bordered table-striped align-middle text-nowrap fs-6">
+              <thead className="table-dark">
+                <tr>
+                  <th>Bill Number</th>
+                  <th>Customer Name</th>
+                  <th>Date</th>
+                  <th>Items</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bills.map((bill, index) => (
+                  <tr key={index}>
+                    <td>{bill.bill_number}</td>
+                    <td>{bill.customer_name}</td>
+                    <td>{bill.date}</td>
+                    <td>
+                      {bill.items.map(item => (
+                        <div key={item.id}>{item.name} - ₹{item.sold_price}</div>
+                      ))}
+                    </td>
+                    <td>
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => printBill(bill)}
+                      >
+                        Print Bill
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal for selling price */}
@@ -150,6 +322,21 @@ function Sales() {
           <Modal.Title>Set Selling Price</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Customer Name"
+            value={customerName}
+            onChange={e => setCustomerName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Bill Number (Optional)"
+            value={billNumber}
+            onChange={e => setBillNumber(e.target.value)}
+          />
           <input
             type="number"
             className="form-control"
@@ -165,7 +352,7 @@ function Sales() {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleConfirmSell} disabled={!sellPrice}>
+          <Button variant="primary" onClick={handleConfirmSell}>
             Confirm Sell
           </Button>
         </Modal.Footer>
