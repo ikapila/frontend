@@ -132,7 +132,10 @@ function App() {
           <div className="collapse navbar-collapse w-100 w-lg-auto" id="navbarNav">
             <ul className="navbar-nav mx-auto">
               <li className="nav-item">
-                <Link className="nav-link" to="/stock-management"><b>Stock Management</b></Link>
+                <Link className="nav-link" to="/stock-management"><b>Stock Reports</b></Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/parts-management"><b>Parts Management</b></Link>
               </li>
               <li className="nav-item">
                 <Link className="nav-link" to="/sales"><b>Sales</b></Link>
@@ -199,6 +202,13 @@ function App() {
         } />
         <Route path="/stock-management" element={
           token ? (
+            <StockManagement />
+          ) : (
+            <p style={{ color: 'red' }}>Please log in to access Stock Management.</p>
+          )
+        } />
+        <Route path="/parts-management" element={
+          token ? (
             <CarPartsManagement
               token={token}
               parts={parts}
@@ -209,7 +219,7 @@ function App() {
               userRole={userRole}
             />
           ) : (
-            <p style={{ color: 'red' }}>Please log in to access Stock Management.</p>
+            <p style={{ color: 'red' }}>Please log in to access Parts Management.</p>
           )
         } />
         <Route path="/sales" element={<Sales />} />
