@@ -82,7 +82,11 @@ function Sales() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/parts`);
+      const res = await fetch(`http://localhost:3000/parts`, {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
       const data = await res.json();
       const filtered = data.filter(
         part =>

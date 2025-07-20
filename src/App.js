@@ -37,7 +37,11 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/parts`);
+      const res = await fetch(`${API_URL}/parts`, {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
       const data = await res.json();
       setParts(data);
     } catch (err) {
@@ -140,7 +144,7 @@ function App() {
               <li className="nav-item">
                 <Link className="nav-link" to="/sales"><b>Sales</b></Link>
               </li>
-              {userRole === 'admin' && (
+              {(userRole === 'admin' || userRole === 'superadmin') && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/admin"><b>Admin</b></Link>
                 </li>

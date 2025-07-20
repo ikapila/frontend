@@ -22,7 +22,7 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
   const onSubmit = (e) => {
     e.preventDefault();
     const partData = { name, manufacturer, stock_status: stockStatus, available_from: availableFrom, sold_date: soldDate, parent_id: parentId, recommended_price: recommendedPrice, local_purchase: localPurchase };
-    if (userRole === 'admin') partData.cost_price = costPrice;
+    if (userRole === 'superadmin') partData.cost_price = costPrice;
     handleAddPart(partData);
     setName('');
     setManufacturer('');
@@ -47,7 +47,7 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
       recommended_price: part.recommended_price || '',
       sold_price: part.sold_price || '',
       local_purchase: !!part.local_purchase,
-      ...(userRole === 'admin' && { cost_price: part.cost_price || '' })
+      ...(userRole === 'superadmin' && { cost_price: part.cost_price || '' })
     });
     setEditError('');
   };
@@ -117,9 +117,9 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
           <input type="checkbox" className="form-check-input me-2" id="localPurchase" checked={localPurchase} onChange={e => setLocalPurchase(e.target.checked)} />
           <label htmlFor="localPurchase" className="form-check-label">Local Purchase</label>
         </div>
-        {userRole === 'admin' && (
+        {userRole === 'superadmin' && (
           <div className="col-12 col-md-2 mb-2 mb-md-0">
-            <input type="number" className="form-control" placeholder="Cost Price (admin only)" value={costPrice} onChange={e => setCostPrice(e.target.value)} min="0" step="0.01" />
+            <input type="number" className="form-control" placeholder="Cost Price (SuperAdmin only)" value={costPrice} onChange={e => setCostPrice(e.target.value)} min="0" step="0.01" />
           </div>
         )}
         <div className="col-12 col-md-1 d-grid">
@@ -142,9 +142,9 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
               <th>Parent ID</th>
               <th>Recommended Price</th>
               <th>Local Purchase</th>
-              {userRole === 'admin' && <th>Cost Price</th>}
-              {userRole === 'admin' && <th>Sold Price</th>}
-              {userRole === 'admin' && <th>Actions</th>}
+              {userRole === 'superadmin' && <th>Cost Price</th>}
+              {(userRole === 'admin' || userRole === 'superadmin') && <th>Sold Price</th>}
+              {(userRole === 'admin' || userRole === 'superadmin') && <th>Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -170,13 +170,13 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
                       <input type="checkbox" className="form-check-input me-2" id={`localPurchaseEdit${part.id}`} checked={!!editFields.local_purchase} onChange={e => handleEditChange('local_purchase', e.target.checked)} />
                       <label htmlFor={`localPurchaseEdit${part.id}`} className="form-check-label">Local</label>
                     </td>
-                    {userRole === 'admin' && (
+                    {userRole === 'superadmin' && (
                       <td><input type="number" className="form-control" value={editFields.cost_price} onChange={e => handleEditChange('cost_price', e.target.value)} min="0" step="0.01" /></td>
                     )}
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                       <td><input type="number" className="form-control" value={editFields.sold_price} onChange={e => handleEditChange('sold_price', e.target.value)} min="0" step="0.01" /></td>
                     )}
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                       <td>
                         <button className="btn btn-success btn-sm me-2" onClick={() => handleEditSave(part.id)} type="button">Save</button>
                         <button className="btn btn-secondary btn-sm" onClick={handleEditCancel} type="button">Cancel</button>
@@ -206,21 +206,21 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
                         : ''
                     }</td>
                     <td>{part.local_purchase ? 'Yes' : 'No'}</td>
-                    {userRole === 'admin' && (
+                    {userRole === 'superadmin' && (
                       <td>{
                         part.cost_price !== null && part.cost_price !== undefined
                           ? `₹${parseFloat(part.cost_price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true })}`
                           : ''
                       }</td>
                     )}
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                       <td>{
                         part.sold_price !== null && part.sold_price !== undefined
                           ? `₹${parseFloat(part.sold_price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true })}`
                           : ''
                       }</td>
                     )}
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                       <td>
                         <button className="btn btn-warning btn-sm" onClick={() => handleEdit(part)} type="button">Edit</button>
                       </td>

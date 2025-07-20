@@ -10,7 +10,7 @@ function Admin({ token, userRole }) {
   const [newRole, setNewRole] = useState('general');
 
   useEffect(() => {
-    if (userRole === 'admin') fetchUsers();
+    if (userRole === 'admin' || userRole === 'superadmin') fetchUsers();
   }, [userRole]);
 
   const fetchUsers = async () => {
@@ -87,7 +87,7 @@ function Admin({ token, userRole }) {
     }
   };
 
-  if (userRole !== 'admin') {
+  if (userRole !== 'admin' && userRole !== 'superadmin') {
     return (
       <div className="container"><div className="alert alert-danger mt-4">Access denied. Admins only.</div></div>
     );
@@ -110,6 +110,7 @@ function Admin({ token, userRole }) {
             <select className="form-select" value={newRole} onChange={e => setNewRole(e.target.value)}>
               <option value="general">General</option>
               <option value="admin">Admin</option>
+              {userRole === 'superadmin' && <option value="superadmin">SuperAdmin</option>}
             </select>
           </div>
           <div className="col-12 col-md-1 d-grid">
@@ -140,8 +141,9 @@ function Admin({ token, userRole }) {
                       onChange={e => handleRoleChange(user.id, e.target.value)}
                       disabled={user.username === 'admin'}
                     >
-                      <option value="admin">Admin</option>
                       <option value="general">General</option>
+                      <option value="admin">Admin</option>
+                      {userRole === 'superadmin' && <option value="superadmin">SuperAdmin</option>}
                     </select>
                   </td>
                   <td>
