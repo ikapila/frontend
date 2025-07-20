@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_ENDPOINTS } from './config/api';
 
 function StockManagement() {
   const [availableStock, setAvailableStock] = useState([]);
@@ -114,7 +115,7 @@ function StockManagement() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/parts`, {
+      const res = await fetch(API_ENDPOINTS.PARTS, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
@@ -144,7 +145,7 @@ function StockManagement() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/parts`, {
+      const res = await fetch(API_ENDPOINTS.PARTS, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }

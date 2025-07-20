@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from './config/api';
 
 function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAddPart, userRole }) {
   const [name, setName] = useState('');
@@ -65,7 +66,7 @@ function CarPartsManagement({ token, parts, fetchParts, loading, error, handleAd
   const handleEditSave = async (id) => {
     setEditError('');
     try {
-      const res = await fetch(`http://localhost:3000/parts/${id}`, {
+      const res = await fetch(`${API_ENDPOINTS.PARTS}/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

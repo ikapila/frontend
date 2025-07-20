@@ -6,8 +6,7 @@ import Sales from './Sales';
 import Admin from './Admin';
 import CarPartsManagement from './CarPartsManagement';
 import AuditLog from './AuditLog';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+import { API_ENDPOINTS } from './config/api';
 
 function App() {
   // Auth state
@@ -38,7 +37,7 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/parts`, {
+      const res = await fetch(API_ENDPOINTS.PARTS, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
@@ -59,7 +58,7 @@ function App() {
   const handleAddPart = async (partData) => {
     setError('');
     try {
-      const res = await fetch(`${API_URL}/parts`, {
+      const res = await fetch(API_ENDPOINTS.PARTS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +79,7 @@ function App() {
     setAuthError('');
     try {
       const endpoint = authMode === 'login' ? '/login' : '/register';
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await fetch(`${API_ENDPOINTS.BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })

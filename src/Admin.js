@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from './config/api';
 
 function Admin({ token, userRole }) {
   const [users, setUsers] = useState([]);
@@ -16,7 +17,7 @@ function Admin({ token, userRole }) {
   const fetchUsers = async () => {
     setError('');
     try {
-      const res = await fetch('http://localhost:3000/users', {
+      const res = await fetch(API_ENDPOINTS.USERS, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch users');
@@ -30,7 +31,7 @@ function Admin({ token, userRole }) {
   const handleRoleChange = async (id, newRole) => {
     setError(''); setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/users/${id}/role`, {
+      const res = await fetch(`${API_ENDPOINTS.USERS}/${id}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ function Admin({ token, userRole }) {
   const handleDelete = async (id) => {
     setError(''); setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/users/${id}`, {
+      const res = await fetch(`${API_ENDPOINTS.USERS}/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -70,7 +71,7 @@ function Admin({ token, userRole }) {
       return;
     }
     try {
-      const res = await fetch('http://localhost:3000/register', {
+      const res = await fetch(API_ENDPOINTS.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole })

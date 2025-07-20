@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from './config/api';
 
 function AuditLog({ token }) {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -25,7 +26,7 @@ function AuditLog({ token }) {
         }
       });
       
-      const res = await fetch(`http://localhost:3000/audit-logs?${queryParams.toString()}`, {
+      const res = await fetch(`${API_ENDPOINTS.AUDIT_LOGS}?${queryParams.toString()}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }

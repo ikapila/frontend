@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from './config/api';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
@@ -82,7 +83,7 @@ function Sales() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/parts`, {
+      const res = await fetch(API_ENDPOINTS.PARTS, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
@@ -111,7 +112,7 @@ function Sales() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`http://localhost:3000/parts/${sellId}/sell`, {
+      const res = await fetch(`${API_ENDPOINTS.PARTS}/${sellId}/sell`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +135,7 @@ function Sales() {
         date: new Date().toISOString().split('T')[0]
       };
 
-      const billRes = await fetch(`http://localhost:3000/bills`, {
+      const billRes = await fetch(API_ENDPOINTS.BILLS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +169,7 @@ function Sales() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/bills`, {
+      const res = await fetch(API_ENDPOINTS.BILLS, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
