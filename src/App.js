@@ -127,15 +127,21 @@ function App() {
   return (
     <div className="App">
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div className="container-fluid d-flex flex-column flex-lg-row align-items-center justify-content-between">
-          <div className="d-flex align-items-center w-100 w-lg-auto justify-content-between">
-            <Link className="navbar-brand" to="/">Rasuki Group Car Parts</Link>
-            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span className="navbar-toggler-icon"></span>
-            </button>
-          </div>
-          <div className="collapse navbar-collapse w-100 w-lg-auto" id="navbarNav">
-            <ul className="navbar-nav mx-auto">
+        <div className="container-fluid">
+          <Link className="navbar-brand" to="/">Rasuki Group Car Parts</Link>
+          <button 
+            className="navbar-toggler" 
+            type="button" 
+            data-bs-toggle="collapse" 
+            data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" 
+            aria-expanded="false" 
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" to="/stock-management"><b>Stock Reports</b></Link>
               </li>
@@ -156,17 +162,17 @@ function App() {
                 </li>
               )}
             </ul>
+            {token && (
+              <div className="d-flex">
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-outline-light"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
-          {token && (
-            <div className="d-flex align-items-center justify-content-center mt-2 mt-lg-0" style={{ minWidth: 100 }}>
-              <button
-                onClick={handleLogout}
-                className="btn btn-outline-light w-100"
-              >
-                Logout
-              </button>
-            </div>
-          )}
         </div>
       </nav>
       <Routes>
