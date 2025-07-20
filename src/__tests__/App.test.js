@@ -44,10 +44,10 @@ describe('App Component', () => {
         render(<App />, { wrapper: RouterWrapper });
       });
 
-      expect(screen.getByText('Car Parts Management System')).toBeInTheDocument();
+      expect(screen.getByText('Car Parts')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
-      expect(screen.getByLabelText('Username')).toBeInTheDocument();
-      expect(screen.getByLabelText('Password')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Username')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
     });
 
     test('should handle successful login', async () => {
@@ -66,8 +66,8 @@ describe('App Component', () => {
         render(<App />, { wrapper: RouterWrapper });
       });
 
-      fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'admin' } });
-      fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'admin' } });
+      fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'admin' } });
+      fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'admin' } });
       
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Login' }));
@@ -87,8 +87,8 @@ describe('App Component', () => {
         render(<App />, { wrapper: RouterWrapper });
       });
 
-      fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'invalid' } });
-      fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'invalid' } });
+      fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'invalid' } });
+      fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'invalid' } });
       
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Login' }));
@@ -113,8 +113,8 @@ describe('App Component', () => {
 
       fireEvent.click(screen.getByText('Register'));
       
-      fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'newuser' } });
-      fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+      fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'newuser' } });
+      fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password' } });
       
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Register' }));

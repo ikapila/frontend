@@ -322,7 +322,7 @@ describe('CarPartsManagement Component', () => {
     it('should handle date input changes', () => {
       render(<CarPartsManagement {...mockProps} />);
       
-      const availableFromInput = screen.getByLabelText('Available From');
+      const availableFromInput = screen.getByPlaceholderText('Available From');
       fireEvent.change(availableFromInput, { target: { value: '2023-06-15' } });
 
       expect(availableFromInput.value).toBe('2023-06-15');
