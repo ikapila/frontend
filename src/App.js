@@ -129,7 +129,7 @@ function App() {
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div className="container-fluid d-flex flex-column flex-lg-row align-items-center justify-content-between">
           <div className="d-flex align-items-center w-100 w-lg-auto justify-content-between">
-            <Link className="navbar-brand" to="/">Car Parts App</Link>
+            <Link className="navbar-brand" to="/">Rasuki Group Car Parts</Link>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>

@@ -30,7 +30,7 @@ function StockManagement() {
         </head>
         <body>
           <div class="header">
-            <h1>Car Parts Management</h1>
+            <h1>Rasuki Group</h1>
             <h2>${reportType} Report</h2>
           </div>
           <div class="report-details">

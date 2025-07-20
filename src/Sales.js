@@ -35,7 +35,7 @@ function Sales() {
         </head>
         <body>
           <div class="header">
-            <h1>Car Parts Management</h1>
+            <h1>Rasuki Group</h1>
             <h2>Bill Receipt</h2>
           </div>
           <div class="bill-details">
