@@ -188,7 +188,7 @@ function App() {
                   <button type="submit" className="btn btn-primary w-100">{authMode === 'login' ? 'Login' : 'Register'}</button>
                 </form>
                 <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="btn btn-link w-100 mt-2">
-                  {authMode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
+                  {authMode === 'login' ? '' : 'Already have an account? Login'}
                 </button>
                 {authError && <div className="alert alert-danger mt-2">{authError}</div>}
               </div>
