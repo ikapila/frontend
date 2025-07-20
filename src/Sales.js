@@ -196,7 +196,12 @@ function Sales() {
   return (
     <div className="container-fluid px-2 px-md-4">
       <div className="card p-2 p-md-4 mt-4 shadow-sm">
-        <h2 className="mb-3 fs-4 fs-md-2">Sales</h2>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2 className="mb-0 fs-4 fs-md-2">Sales</h2>
+          <small className="text-muted">
+            <i className="bi bi-shield-check"></i> All actions are logged for audit
+          </small>
+        </div>
         <form className="row g-2 g-md-3 mb-3" onSubmit={handleSearch}>
           <div className="col-12 col-md-8 mb-2 mb-md-0">
             <input

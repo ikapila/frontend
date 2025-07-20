@@ -5,6 +5,7 @@ import StockManagement from './StockManagement';
 import Sales from './Sales';
 import Admin from './Admin';
 import CarPartsManagement from './CarPartsManagement';
+import AuditLog from './AuditLog';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
@@ -149,6 +150,11 @@ function App() {
                   <Link className="nav-link" to="/admin"><b>Admin</b></Link>
                 </li>
               )}
+              {(userRole === 'admin' || userRole === 'superadmin') && (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/audit-log"><b>Audit Log</b></Link>
+                </li>
+              )}
             </ul>
           </div>
           {token && (
@@ -228,6 +234,13 @@ function App() {
         } />
         <Route path="/sales" element={<Sales />} />
         <Route path="/admin" element={<Admin token={token} userRole={userRole} />} />
+        <Route path="/audit-log" element={
+          (userRole === 'admin' || userRole === 'superadmin') ? (
+            <AuditLog token={token} />
+          ) : (
+            <p style={{ color: 'red' }}>Admin access required to view audit logs.</p>
+          )
+        } />
       </Routes>
     </div>
   );
