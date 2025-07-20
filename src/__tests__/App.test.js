@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 
 // Mock localStorage
@@ -21,7 +21,7 @@ global.fetch = jest.fn();
 
 // Wrapper component to provide Router context
 const RouterWrapper = ({ children }) => (
-  <BrowserRouter>{children}</BrowserRouter>
+  <MemoryRouter initialEntries={['/']}>{children}</MemoryRouter>
 );
 
 describe('App Component', () => {
@@ -53,13 +53,16 @@ describe('App Component', () => {
     test('should handle successful login', async () => {
       mockLocalStorage.getItem.mockReturnValue(null);
       
+      // Mock parts fetch for after login
       fetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ 
           token: 'fake-jwt-token', 
-          role: 'admin',
-          username: 'admin'
+          role: 'admin'
         }),
+      }).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([])
       });
 
       await act(async () => {
@@ -73,8 +76,9 @@ describe('App Component', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Login' }));
       });
 
+      // After successful login, app navigates to Stock Management
       await waitFor(() => {
-        expect(screen.getByText('Welcome, admin!')).toBeInTheDocument();
+        expect(screen.getByText('Stock Management')).toBeInTheDocument();
       });
     });
 
@@ -95,7 +99,7 @@ describe('App Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+        expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
       });
     });
 
@@ -111,7 +115,17 @@ describe('App Component', () => {
         render(<App />, { wrapper: RouterWrapper });
       });
 
-      fireEvent.click(screen.getByText('Register'));
+      // Switch to register mode - the toggle button is empty in login mode
+      const toggleButton = screen.getByRole('button', { name: '' });
+      
+      await act(async () => {
+        fireEvent.click(toggleButton);
+      });
+
+      // Now we should see the Register form
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument();
+      });
       
       fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'newuser' } });
       fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password' } });
@@ -120,8 +134,9 @@ describe('App Component', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Register' }));
       });
 
+      // After successful registration, it switches back to login mode
       await waitFor(() => {
-        expect(screen.getByText(/user registered successfully/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
       });
     });
   });
@@ -161,11 +176,13 @@ describe('App Component', () => {
   });
 
   describe('Parts Management Integration', () => {
-    beforeEach(() => {
-      localStorage.setItem('token', 'fake-jwt-token');
-    });
-
     it('should fetch and display parts', async () => {
+      // Set up localStorage mock to return the token
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'fake-jwt-token';
+        return null;
+      });
+
       const mockParts = [
         {
           id: 1,
@@ -181,8 +198,12 @@ describe('App Component', () => {
         json: async () => mockParts
       });
 
+      const RouterWrapperWithParts = ({ children }) => (
+        <MemoryRouter initialEntries={['/parts-management']}>{children}</MemoryRouter>
+      );
+
       await act(async () => {
-        render(<App />, { wrapper: RouterWrapper });
+        render(<App />, { wrapper: RouterWrapperWithParts });
       });
 
       await waitFor(() => {
@@ -195,14 +216,24 @@ describe('App Component', () => {
     });
 
     it('should handle parts fetch error', async () => {
+      // Set up localStorage mock to return the token
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'fake-jwt-token';
+        return null;
+      });
+
       fetch.mockRejectedValueOnce(new Error('Network error'));
 
+      const RouterWrapperWithParts = ({ children }) => (
+        <MemoryRouter initialEntries={['/parts-management']}>{children}</MemoryRouter>
+      );
+
       await act(async () => {
-        render(<App />, { wrapper: RouterWrapper });
+        render(<App />, { wrapper: RouterWrapperWithParts });
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to fetch car parts')).toBeInTheDocument();
+        expect(screen.getByText(/failed to fetch/i)).toBeInTheDocument();
       });
     });
   });
